@@ -7,61 +7,32 @@ import * as SQLite from 'expo-sqlite'
 export default function Views(){
 var db=SQLite.openDatabase('school.db')
 const navigation=useNavigation()
-    const [items, setItems] = useState([]);
-  const [empty, setEmpty] = useState([]);
+  const [items, setItems] = useState([]);
   const isFocused= useIsFocused()
+  const url='https://native-api.vercel.app/'
+
+  const getData=async ()=>{
+    try{
+      const response=await fetch(url);
+      const data=await response.json();
+      setItems(data)
+    }
+    catch(error){
+      console.log(error)
+    }
+  } 
+
   useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        'SELECT * FROM students',
-        [],
-        (tx, results) => {
-          var temp = [];
-          for (let i = 0; i < results.rows.length; ++i)
-            temp.push(results.rows.item(i));
-          setItems(temp);
- 
-          if (results.rows.length >= 1) {
-            setEmpty(false);
-          } else {
-            setEmpty(true)
-          }
- 
-        }
-      );
- 
-    });
+    getData()
   }, [isFocused]);
-  const listViewItemSeparator = () => {
-    return (
-      <View
-        style={{
-          height: 1,
-          width: '100%',
-          backgroundColor: '#000'
-        }}
-      />
-    );
-  };
  
-  const emptyMSG = (status) => {
-    return (
-      <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
  
-        <Text style={{ fontSize: 25, textAlign: 'center' }}>
-          No Record Inserted Database is Empty...
-          </Text>
- 
-      </View>
-    );
-  }
- 
-  const EditScreen = (id, name, phoneNumber, address) => {
+  const EditScreen = (id, name, snumbers) => {
  
     navigation.navigate('edit', {
       id: id,
-      student_name: name,
-      student_regNumber: phoneNumber,
+      name: name,
+      snumber: snumbers,
       
     });
   }
@@ -70,26 +41,23 @@ const navigation=useNavigation()
     return(
       <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
-        {empty ? emptyMSG(empty) :
  
           <FlatList
             data={items}
-            ItemSeparatorComponent={listViewItemSeparator}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) =>
-              <View key={item.id} style={{ padding: 20 }}>
+              <View key={item._id} style={{ padding: 20 }}>
                 
-                  <Text style={styles.itemsStyle}> Id: {item.id} </Text>
-                  <Text style={styles.itemsStyle}> student_name: {item.student_name} </Text>
-                  <Text style={styles.itemsStyle}> student_regNumber: {item.student_regNumber} </Text>
-                <TouchableOpacity onPress={()=> EditScreen(item.id, item.student_name, item.student_regNumber) }>
+                  {/* <Text style={styles.itemsStyle}> Id: {item._id} </Text> */}
+                  <Text style={styles.itemsStyle}> student_name: {item.name} </Text>
+                  <Text style={styles.itemsStyle}> student_regNumber: {item.number} </Text>
+                <TouchableOpacity onPress={()=> navigation.navigate("edit",{id:item._id, name:item.name, snumber:item.number}) }>
                 <AntDesign name="edit" style={{fontSize:24,color:'green',position:'relative',left:'90%'}}></AntDesign>
                 </TouchableOpacity> 
                
               </View>
             }
           />
-        }
          <TouchableOpacity
           style={styles.view_btn}
           onPress={()=> navigation.navigate('add')}>
